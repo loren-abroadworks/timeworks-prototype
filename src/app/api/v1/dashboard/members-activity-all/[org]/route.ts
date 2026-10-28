@@ -1,0 +1,10 @@
+import type { NextRequest } from "next/server";
+import { membersActivityAll } from "@/mock/engine";
+import { listOf, rangeOf, respond } from "@/mock/http";
+
+/** GET /api/v1/dashboard/members-activity-all/{org}?limit&offset&search&filter_user_id&start_date&end_date — "Members" sheet. */
+export async function GET(req: NextRequest) {
+  const { start, end } = rangeOf(req);
+  const list = listOf(req);
+  return respond(req, (ctx) => membersActivityAll(ctx, { start, end, ...list }));
+}

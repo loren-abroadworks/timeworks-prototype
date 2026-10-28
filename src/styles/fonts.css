@@ -1,0 +1,49 @@
+/*
+ * Fonts used by TimeWorks (originally loaded through next/font/google).
+ * Only the "latin" subset files are bundled locally in /public/fonts so the replica works offline.
+ * The two class names below are the exact (hashed) class names the live app puts on <html>/<body>.
+ */
+@font-face {
+  font-family: Karla;
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url(/fonts/karla-latin.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Karla Fallback";
+  src: local(Arial);
+  ascent-override: 89.55%;
+  descent-override: 24.61%;
+  line-gap-override: 0%;
+  size-adjust: 102.4%;
+}
+@font-face {
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(/fonts/montserrat-latin.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Montserrat Fallback";
+  src: local(Arial);
+  ascent-override: 85.79%;
+  descent-override: 22.25%;
+  line-gap-override: 0%;
+  size-adjust: 112.83%;
+}
+.zA4O2W_className {
+  font-family: Karla, "Karla Fallback";
+  font-style: normal;
+}
+.zA4O2W_variable {
+  --font-karla: "Karla", "Karla Fallback";
+}
+._19wr9q_className {
+  font-family: Montserrat, "Montserrat Fallback";
+  font-style: normal;
+}
+._19wr9q_variable {
+  --font-montserrat: "Montserrat", "Montserrat Fallback";
+}

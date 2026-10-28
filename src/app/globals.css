@@ -1,0 +1,21 @@
+/*
+ * Styling strategy
+ * ----------------
+ * 1. Tailwind v4 (theme + utilities only, NO preflight) is compiled from the classes used in /src.
+ *    This is what makes NEW classes you add while prototyping work.
+ * 2. src/styles/theme-tokens.css maps the TimeWorks color tokens (bg-secondary-surface, text-muted-foreground,
+ *    border-layout-subtle, …) to the original CSS variables so new classes look identical to the originals.
+ * 3. src/styles/timeworks-compiled.css is the live app's compiled stylesheet, copied verbatim.
+ *    It is imported AFTER this file (see src/app/layout.tsx), so wherever both define the same class
+ *    the original wins. It also contains the preflight/base styles, the :root/.dark/[data-accent]
+ *    theme variables and the background "scene" classes.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "../styles/theme-tokens.css";
+
+/* Same dark variant selector the live app compiles to: `.dark\:x:is(.dark *)` */
+@custom-variant dark (&:is(.dark *));
+
+@source "../";
