@@ -1,0 +1,119 @@
+Ticket,Test Case,Status,Error Type,Explanation
+TIMEW-1109,Required field validation,Pass,-,"Empty Create shows 'Policy name / Starting balance / Client is required'. Each error clears as its field is filled; nothing saves.
+Screenshot: https://drive.google.com/file/d/1a6XQV4BbiOszmy-nqePKHGrnZE6iJkLo/view"
+TIMEW-1109,Policy row actions,Pass,-,"Edit locks Schedule of Accrual (with hint). Delete opens a confirmation modal (cancelled).
+Screenshots:
+https://drive.google.com/file/d/1IP3yFd-QhwXQ6X9QgH20tw0qA0_foOn-/view
+https://drive.google.com/file/d/18tJqLJm4O7uSNl42Ymvkjm-Um151N5OF/view"
+TIMEW-1706,Anchor field visible with default,Pass,-,"Defaults to Calendar Year (January 1). Options: Calendar Year / Work Anniversary / Policy Joined Date.
+Screenshots:
+https://drive.google.com/file/d/1IymcOnofGFItmsINq0ov118Y5TVjB6QR/view
+https://drive.google.com/file/d/10ppu4q99vjRNxeFpo2MVTR_SPJApWgnY/view"
+TIMEW-1692,Rollover fields reveal,Pass,-,"Rollover Cap and expiry fields appear only when 'Allow rollover' is ticked.
+Screenshot: https://drive.google.com/file/d/12U4p8SP9C3H_N-D-troN4z1KoEajL6v1/view"
+TIMEW-1239,Leave indicator on leave day,Needs decision,Functional,"WHY: The leave banner matches Figma (green Paid pill; Unpaid shows a dark badge). But 'View Request' opens the generic Time Off list (Oct 23 - Nov 30, unfiltered), so the request is not visible. Figma does not specify the link target, so confirm with the acceptance criteria.
+STR:
+1. Go to Activity > Screenshots.
+2. Select member Dip Tester nine, date Sep 8, 2026 (approved paid leave).
+3. Click View Request on the leave banner.
+EXPECTED: That leave request opens.
+ACTUAL: Lands on Calendar > Time Off (/organizations/3/timeoff/requests) for Oct 23 - Nov 30; Dip's Sep 8 request is not listed.
+Screenshots:
+Paid banner: https://drive.google.com/file/d/1QVIDCiiPNdYRFe6MYy9mJ4P1Sr5Ne2EV/view
+Unpaid banner: https://drive.google.com/file/d/1xtL6cMZHid1YKEXLN0Tm3Ax4TdCM2JTz/view
+After View Request: https://drive.google.com/file/d/11baEXjos7NT4RQHqlVZfaKEkVZGWWCd7/view
+Figma: https://drive.google.com/file/d/1sQt4zuOuOrxF8ahzWbpoKkZswtkWlnQl/view"
+TIMEW-1239,Normal days unchanged,Pass,-,"Normal working day shows the standard screenshot view; a day with no leave and no screenshots shows the empty state.
+Screenshots:
+https://drive.google.com/file/d/1FZdFlvHVmNCHiSgZPCrp8_BiUaHBN_Ei/view
+https://drive.google.com/file/d/1vEOxG828yzKQXM5og5keERK3IREoU8Fv/view"
+TIMEW-1716,Navigation and default,Fail,Not aligned with Figma,"WHY: Figma's Month view has a 'Today' button; live does not, so test step 3 cannot be done. Prev/next and the month picker work; defaults to the current month.
+STR:
+1. Go to Absence & Leave > Calendar > Month.
+2. Click > a few times to move ahead.
+3. Look for a Today button next to the month controls.
+EXPECTED: Today button returns to the current month (Figma).
+ACTUAL: Only <, month picker and >; no Today button.
+Screenshots:
+Live: https://drive.google.com/file/d/11OQ31_mlEID0KHGzIZla0cd2Rywhpsnl/view
+Month picker: https://drive.google.com/file/d/16OFERhsLaqK0pZtr7xasTN7lFCa_ABAo/view
+Figma: https://drive.google.com/file/d/125HhQA1du1cabgIf5vq2t3gyRNs37DWv/view"
+TIMEW-1716,"Chip styles, legend, +N More",Fail,Not aligned with Figma,"WHY: Figma colours chips by LEAVE TYPE (Vacation/PTO, Sick, Personal, Parental, Unpaid, Other) with a 'Solid = Approved, Dashed = Pending' key. Live colours chips by STATUS (green/yellow) and the legend only has Approved / Pending / All. '+N More' works and matches Figma.
+STR:
+1. Go to Absence & Leave > Calendar > Month.
+2. Check the legend (top-right) and chip colours.
+3. Click '+1 more' on Aug 18.
+EXPECTED: Leave-type colours, single 'Other' colour, solid/dashed key (Figma).
+ACTUAL: Status colours; Approved/Pending/All pills.
+Screenshots:
+Live: https://drive.google.com/file/d/11OQ31_mlEID0KHGzIZla0cd2Rywhpsnl/view
++N More popover: https://drive.google.com/file/d/1ef6y9OumbEbnAGx94c5MNqY_4J6rHMXp/view
+Figma month: https://drive.google.com/file/d/125HhQA1du1cabgIf5vq2t3gyRNs37DWv/view
+Figma overflow: https://drive.google.com/file/d/18sswHh7RpCI3So-dNASrt8NyDg_PbMGa/view"
+TIMEW-1717,"Navigation, chips, legend, +N More",Fail,Not aligned with Figma + Test case issue,"WHY:
+(1) Figma's Week view has a 'Today' button; live does not.
+(2) Figma shows multi-day leave as spanning bars coloured by leave type; live shows one status-coloured chip per day.
+(3) TEST CASE ISSUE: Figma's Week view has no '+N More', and the app allows only 1 leave per member per day ('Date range overlaps with an existing request'), so '+N More' cannot occur. Remove that step.
+STR:
+1. Go to Absence & Leave > Calendar > Week.
+2. Click > a few times; look for Today.
+3. Look at John's leaves on Mon Oct 26.
+EXPECTED: Today button; leave-type spanning bars (Figma).
+ACTUAL: No Today button; status chips stacked per day.
+Screenshots:
+Week view: https://drive.google.com/file/d/1rnsD335mvUbbAqsOmElLarLvSCJMSqya/view
+Week picker: https://drive.google.com/file/d/1sICwhFOt3XvOiz1G59xwqzAIAryv-Lmg/view
+Stacked leaves: https://drive.google.com/file/d/1k6JIwMiJviDEUIaUthODzz0VfKgYA0j5/view
+Overlap error: https://drive.google.com/file/d/1I9kIQubeh_VGeIG3GvAlN4c5VrFupRkI/view
+Chip opens modal: https://drive.google.com/file/d/1fKmlIjCJp8TwRmCzuuQSZsgxN0ZQcPyd/view
+Figma week: https://drive.google.com/file/d/1B1tWwPd4ETXXiaPJU8EAKU1uMwPcevYh/view"
+TIMEW-1832,Toggle between views,Pass,-,"List and grid icons switch views; the active icon is highlighted blue.
+Screenshots:
+https://drive.google.com/file/d/14ifTA0qnAfAQiy0-OvWGwZ0shW01N-yD/view
+https://drive.google.com/file/d/17Puzeqc6p2MZYLYGHySmgcylIYNZVjD-/view"
+TIMEW-1715,Modal layout and closing,Fail,Not aligned with Figma,"WHY: Closing works (X and click outside), but the layout does not match Figma. Live is missing the Date Range card, the Days Off Schedule section, the open-in-new icon on the member card and the info tooltips in Balance Summary. The status badge sits under a 'Request' label instead of next to the title, and Balance Summary labels differ (live: Current Policy Balance / This Request / Other Pending Requests / Balance After Approvals; Figma: Current balance / This request / Pending requests / Remaining balance). Open question: whether Deny should show on Approved requests (Approved design not yet reviewed).
+STR:
+1. Go to Absence & Leave > Calendar.
+2. Click any leave chip.
+3. Compare with Figma frame 29381:1032211.
+Screenshots:
+Live: https://drive.google.com/file/d/11HnO16lYllgHnIyp7nVGDgXMQHzDKbvH/view
+Figma: https://drive.google.com/file/d/1hBUztA0BrD4XBkhWf31v_9O0HukscoYI/view
+Figma (Requests modal): https://drive.google.com/file/d/1Vh67J0J9Xuq2JHH8Svt7eYaFBVPqMOu3/view"
+TIMEW-1918,Layout per design,Pass,-,"Columns match the test case (checkbox, Member, Client, Projects, Teams, Policy Balances); no date selector, Available Balance or Granted columns; Export/Import in the top-right menu. Note: Figma's Balances frame is outdated (one column per policy), so this was checked against the test case. Ask design to update the frame.
+Screenshots:
+Live: https://drive.google.com/file/d/1oYx5h2qBD4GSaJG5yj24nUJN4Lo_N2yQ/view
+Figma (outdated): https://drive.google.com/file/d/1PKjal9fWd3yL3Xg3N9xTiCUW3RLAwEUi/view"
+TIMEW-1918,Policy chips and overflow,Needs decision,Functional,"WHY: The Policy Balances cell does not scroll sideways; it shows 4 chips then a '+4' button. Client/Projects '+N' and '$' on billable chips work. Figma is outdated for this page, so confirm in the acceptance criteria whether scrolling or '+N' is intended.
+STR:
+1. Go to Absence & Leave > Balances.
+2. Find Akshoy or Amir (more than 4 policies).
+3. Try to scroll the Policy Balances cell sideways (shift + wheel / trackpad).
+EXPECTED: Cell scrolls through all chips; other columns stay fixed.
+ACTUAL: No scroll; 4 chips + '+4' button.
+Screenshot: https://drive.google.com/file/d/1h2O7_2yB6wdMM33xr41LkG_4LdHf2nQk/view"
+TIMEW-1918,Chip opens Adjust modal,Fail (minor),Not aligned with Figma,"WHY: The modal opens with avatar, name, policy and remaining hours (functional part passes). Title, Reason and Cancel/Save match Figma, but Figma also has a Policy dropdown, a '~ N days' helper and a Balance Summary block that live does not have.
+STR:
+1. Go to Absence & Leave > Balances.
+2. Click any policy chip on a member row.
+3. Compare with Figma frame 29481:40507, then Cancel.
+Screenshots:
+Live: https://drive.google.com/file/d/1opIJKn5KfEe3mIZx9OurWSZIKQUZfZDr/view
+Figma: https://drive.google.com/file/d/1zQ_yWjMWqrJijWskYxeQjALYTttnx8X0/view"
+TIMEW-1930,Page access and layout,Pass (deviation),Not aligned with Figma (low) + Test case issue,"WHY: Page loads and the progress bar is shown. Layout differs from Figma: Figma has an Actions column, one row per member + policy and card-style history; live has Last Adjusted, rows grouped by member and table-row history. TEST CASE ISSUE: Figma has no in-page Back button either, so change step 3 to 'browser Back'.
+STR:
+1. Go to Absence & Leave > Balances > View Audit Trail.
+2. Compare with Figma frame 29377:1016489.
+Screenshots:
+Live: https://drive.google.com/file/d/1EaWyu5O3NxvJu9i4E1PgBNgfWWO-POT7/view
+Figma: https://drive.google.com/file/d/1vxt6K4P94Gq0ykfhExJDFZk8sKetL0bJ/view"
+TIMEW-1930,Expand/collapse and colors,Pass,-,"Rows expand and collapse; negative adjustments red, positive green, in hours (matches Figma).
+Screenshots:
+https://drive.google.com/file/d/1-CEile-p17Li-BqGxDAlBl1mZEzt2uyw/view
+https://drive.google.com/file/d/1V2VOfEWVNyenurqnd3TAUgv5vsTrN4zR/view"
+TIMEW-1366,Policy filter chip display,Pass,-,"Chip shows 'Time Off Policy 3', then 2 after removing one policy.
+Screenshots:
+https://drive.google.com/file/d/1J96NOwcQ6DbyVJMENSewW1u8umhzY9EF/view
+https://drive.google.com/file/d/1pcfpyvkj4AW4HzDqgzZul0wbdJY8Gca6/view"
+TIMEW-1786,Quick regression on policy list,Pass,-,"Every policy on page 1 shows its client.
+Screenshot: https://drive.google.com/file/d/1QBJgC7pqseW604vJ5n750v-VftYFrdQD/view"
