@@ -6,6 +6,7 @@ import "@/styles/timeworks-compiled.css";
 import "@/styles/timeworks-loader.css";
 import "@/styles/fonts.css";
 import { Providers } from "./providers";
+import { APPEARANCE_INIT_SCRIPT } from "@/components/layout/appearance";
 
 export const metadata: Metadata = {
   title: "Dashboard | TimeWorks",
@@ -19,6 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // Same attributes as the live app: dark mode, blue accent, no background scene.
     <html lang="en" className="zA4O2W_variable _19wr9q_variable dark" data-mode="dark" data-accent="blue" data-scene="none" suppressHydrationWarning>
+      <head>
+        {/* Applies saved Appearance preferences (theme / accent / scene / blur / wallpaper) before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_INIT_SCRIPT }} />
+      </head>
       <body className="zA4O2W_variable _19wr9q_variable antialiased">
         <Providers>
           <Suspense>{children}</Suspense>

@@ -44,6 +44,12 @@ export interface SeedMember {
   projects: string[];
   /** Days since the member last tracked time (0 = active today). Overrides generated data for "today". */
   lastActiveDaysAgo: number;
+  /** IANA time zone the member works in (their tracked hours are generated in this zone). */
+  timezone: string;
+  /** "Started on" date shown on the Timesheets member card. */
+  startDate: string;
+  /** Team ids (see TEAMS). */
+  teams: number[];
 }
 
 export const MEMBERS: SeedMember[] = [
@@ -61,6 +67,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 8,
     projects: ["p-website", "p-mobile", "p-internal"],
     lastActiveDaysAgo: 0,
+    timezone: "America/New_York",
+    startDate: "2023-03-06",
+    teams: [1, 2],
   },
   {
     user_id: "1b7e4c22-8d90-7a13-b5f2-6c0d9e3a1f44",
@@ -76,6 +85,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 8,
     projects: ["p-mobile", "p-pipeline", "p-support"],
     lastActiveDaysAgo: 0,
+    timezone: "Asia/Kolkata",
+    startDate: "2023-07-17",
+    teams: [1],
   },
   {
     user_id: "2c8f5d33-9ea1-7b24-86a3-7d1eaf4b2a55",
@@ -91,6 +103,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 9,
     projects: ["p-website", "p-brand"],
     lastActiveDaysAgo: 0,
+    timezone: "America/Chicago",
+    startDate: "2024-01-08",
+    teams: [2, 3],
   },
   {
     user_id: "3d9a6e44-afb2-7c35-97b4-8e2fb05c3b66",
@@ -106,6 +121,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 6,
     projects: ["p-pipeline", "p-internal"],
     lastActiveDaysAgo: 0,
+    timezone: "Europe/Berlin",
+    startDate: "2024-04-22",
+    teams: [1],
   },
   {
     user_id: "4eab7f55-b0c3-7d46-a8c5-9f30c16d4c77",
@@ -121,6 +139,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 5,
     projects: ["p-support", "p-brand"],
     lastActiveDaysAgo: 1,
+    timezone: "America/Mexico_City",
+    startDate: "2024-09-02",
+    teams: [4],
   },
   {
     user_id: "5fbc8066-c1d4-7e57-b9d6-a041d27e5d88",
@@ -136,6 +157,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 8,
     projects: ["p-mobile", "p-website"],
     lastActiveDaysAgo: 0,
+    timezone: "Africa/Lagos",
+    startDate: "2023-11-13",
+    teams: [1, 2],
   },
   {
     user_id: "60cd9177-d2e5-7f68-8ae7-b152e38f6e99",
@@ -151,6 +175,9 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 4,
     projects: ["p-internal", "p-support"],
     lastActiveDaysAgo: 3,
+    timezone: "Asia/Manila",
+    startDate: "2025-02-03",
+    teams: [4],
   },
   {
     user_id: "71dea288-e3f6-7079-9bf8-c26304907faa",
@@ -166,8 +193,28 @@ export const MEMBERS: SeedMember[] = [
     dailyLimitHours: 0,
     projects: ["p-brand"],
     lastActiveDaysAgo: 34,
+    timezone: "Europe/Rome",
+    startDate: "2025-06-16",
+    teams: [3],
   },
 ];
+
+/** Teams shown on the Timesheets member card (ids referenced by MEMBERS[].teams). */
+export const TEAMS = [
+  { id: 1, name: "Product Engineering" },
+  { id: 2, name: "Client Delivery" },
+  { id: 3, name: "Design Studio" },
+  { id: 4, name: "Customer Success" },
+];
+
+/**
+ * Managers per member (user ids), shown as "Manager (n)" on the Timesheets member card.
+ * Members not listed are managed by the Owner (Jordan) and Priya.
+ */
+export const MANAGERS: Record<string, string[]> = {
+  "0f9c2a71-5b3e-7d41-9a6c-2e8b4d1f7a30": ["1b7e4c22-8d90-7a13-b5f2-6c0d9e3a1f44"],
+  "1b7e4c22-8d90-7a13-b5f2-6c0d9e3a1f44": ["0f9c2a71-5b3e-7d41-9a6c-2e8b4d1f7a30"],
+};
 
 export interface SeedProject {
   id: string;

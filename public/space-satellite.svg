@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-80 -40 160 80" fill="none">
+  <defs>
+    <linearGradient id="sat-panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.95" />
+      <stop offset="55%" stop-color="#000" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.65" />
+    </linearGradient>
+    <linearGradient id="sat-foil" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.45" />
+      <stop offset="45%" stop-color="#000" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.85" />
+    </linearGradient>
+    <linearGradient id="sat-dish" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.7" />
+    </linearGradient>
+    <g id="sat-wing">
+      <rect x="0" y="-17" width="52" height="34" rx="1.5" fill="url(#sat-panel)" />
+      <g stroke="#000" stroke-opacity="0.35" stroke-width="0.7" opacity="0.55">
+        <path d="M13 -17 V 17" />
+        <path d="M26 -17 V 17" />
+        <path d="M39 -17 V 17" />
+        <path d="M0 -5.7 H 52" />
+        <path d="M0 5.7 H 52" />
+      </g>
+      <rect
+        x="0"
+        y="-17"
+        width="52"
+        height="34"
+        rx="1.5"
+        fill="none"
+        stroke="#000" stroke-opacity="0.5"
+        stroke-width="1.4"
+      />
+      <path d="M0 0 H 52" stroke="#000" stroke-opacity="0.4" stroke-width="0.9" opacity="0.7" />
+    </g>
+  </defs>
+
+  <g stroke="#000" stroke-opacity="0.6" stroke-width="3">
+    <path d="M-19 0 H -27" />
+    <path d="M19 0 H 27" />
+  </g>
+
+  <use href="#sat-wing" transform="translate(-79 0)" />
+  <use href="#sat-wing" transform="translate(27 0)" />
+
+  <path d="M0 13 V 22" stroke="#000" stroke-opacity="0.6" stroke-width="2.2" />
+  <ellipse cx="0" cy="27" rx="15" ry="6.5" fill="#000" fill-opacity="0.8" />
+  <ellipse cx="0" cy="25" rx="15" ry="6.5" fill="url(#sat-dish)" />
+  <ellipse cx="0" cy="25" rx="7" ry="3" fill="#000" fill-opacity="0.6" opacity="0.7" />
+  <path d="M0 25 V 17" stroke="#000" stroke-opacity="0.7" stroke-width="1.4" />
+
+  <rect x="-19" y="-13" width="38" height="26" rx="3" fill="url(#sat-foil)" />
+  <rect x="-19" y="-13" width="38" height="26" rx="3" fill="none" stroke="#000" stroke-opacity="0.8" stroke-width="1" />
+  <rect x="-13" y="-9" width="26" height="7" rx="1.5" fill="#000" fill-opacity="0.3" opacity="0.85" />
+  <g stroke="#000" stroke-opacity="0.8" stroke-width="0.8" opacity="0.5">
+    <path d="M-19 3 H 19" />
+    <path d="M-19 8 H 19" />
+  </g>
+  <rect x="-6" y="-13" width="12" height="26" fill="#000" fill-opacity="0.35" opacity="0.35" />
+
+  <path d="M-2 -13 V -26" stroke="#000" stroke-opacity="0.6" stroke-width="1.6" />
+  <circle cx="-2" cy="-28" r="2.6" fill="#000" />
+  <path d="M8 -13 L 14 -24" stroke="#000" stroke-opacity="0.6" stroke-width="1.2" />
+  <circle cx="14" cy="-25" r="1.8" fill="#000" fill-opacity="0.4" />
+</svg>

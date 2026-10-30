@@ -4,5 +4,5 @@ import { respond } from "@/mock/http";
 
 /** GET /api/v1/all/projects/{org} — project options for the project filter. */
 export async function GET(req: NextRequest) {
-  return respond(req, () => allProjects());
+  return respond(req, () => allProjects(req.nextUrl.searchParams.get("user_id")));
 }

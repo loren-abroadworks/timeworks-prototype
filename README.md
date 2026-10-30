@@ -164,3 +164,95 @@ map to the same CSS variables. The compiled CSS is imported after Tailwind's out
   so there it appears blank.
 - The live app's "space" background canvas animation only runs for `data-scene="space"`; with `data-scene="none"`
   (the live setting) nothing is drawn, so it was not ported.
+
+---
+
+# Batch 1 — app shell, Timesheets, Activity
+
+## New pages
+
+| Page | URL |
+| --- | --- |
+| Timesheets › View & Edit | `/organizations/3/timesheets/view_edit` (`?start_date&end_date&user_id&user_name&page&date&timezone`) |
+| Activity › Screenshots | `/organizations/3/activities/screenshots` (`?date&user_id&view=all_records&timezone`) |
+| Activity › App | `/organizations/3/activities/apps` (`?date&user_id`) |
+| Activity › URLs (My URLs) | `/organizations/3/activities/urls` |
+| Activity › URLs (All URLs / URL management) | `/organizations/3/activities/urls/admin_view` (`?view=day\|week\|month\|year&start_date&end_date&page&alerts_filter`) |
+| Activity › Deleted Screenshots | `/organizations/3/activities/deleted_screenshots` |
+| Profile menu targets (coming soon) | `/account`, `/download`, `/faq`, `/organizations/active`, `/organizations/create` |
+
+Every other sidebar link (35 in total, same labels / URLs as the live nav map) still lands on the "Coming soon" page.
+
+**Shell** (`src/components/layout/*`): expanded sidebar (accordion, Settings › Organization / Employees second level, active
+states), collapsed sidebar with click-to-open flyouts, collapse toggle + Ctrl/⌘+B persisted in `localStorage["sidebar_state"]`
+(default collapsed), org switcher (Acme Remote Co. ✓ / Manage / Create organization), profile menu (Profile, Appearance,
+Desktop App, Help & FAQs, Report a Bug, Sign out → toast only). **Appearance** works locally (theme, accent, background
+scene, blur, wallpaper; live keys `tw-mode`, `tw-accent`, `tw-scene`, `tw-background-blur`, plus `tw-replica-wallpaper`),
+applied before first paint by a script in `src/app/layout.tsx`. **Report a Bug** posts FormData to `POST /report-bug/submit`
+(same path as live; kept in memory, `GET` lists them).
+
+**Shared toolbar** (`src/components/filters/*`): Filters popover (Filter options / Saved filters with save / edit / delete),
+member selector, timezone selector (Your / Company / Local + search), filter chips (single or multi-select), day and range
+navigators, ⋮ / export menus, react-hot-toast toasts.
+
+## Data model (how writes behave)
+
+`src/mock/store.ts` now generates individual **time entries** (UTC start/stop, project, task, activity, idle / manual / paid
+flags) for every member on their own local calendar (`timezone` per member in `seed.ts`). "Today" ends ~2 minutes before
+now, so live-looking data exists at any hour. Dashboard day records are re-derived from the entries after every write,
+so **edits on Timesheets / Screenshots change the Dashboard totals too**. 10-minute slots (screenshots, keyboard / mouse
+counts) are derived from the entries (`src/mock/timeline.ts`); app usage and URL visits are derived from entries + the
+day's app mix (`src/mock/app-usage.ts`, `src/mock/urls.ts`, data in `src/mock/seed-activity.ts`). Writes live in memory
+until `POST /api/__reset` (or a day roll-over). Entries older than 35 days are `is_paid` (delete asks for confirmation).
+Playwright pins the browser to `America/New_York` (the demo user's zone).
+
+## New endpoints (all under `/api/v1`, all honour `?scenario=empty` / `?latency=`)
+
+| Method + path | Notes |
+| --- | --- |
+| `GET /get-timezone` | timezone list (subset of the live ~600 rows, same row shape) |
+| `GET/POST /saved-filters/{org}?page_key=`, `PUT/DELETE /saved-filters/{org}/{id}`, `PUT /saved-filters/{org}/reorder` | saved filters |
+| `GET /reports/user-time-sheet/{org}/{user}?start_date&end_date&timezone_str&offset&limit[&project_id&time_type&activity_level][&export_type=excel\|pdf]` | timesheet (shape = live `USER_TIMESHEETS`) |
+| `GET /project/tasks/{org}/{project}`, `GET /project/all-tasks/{org}/{project}/{user}` | To-Do lists for dialogs |
+| `POST /add/time-entries[-slot]/{org}/{user}?timezone_str` | add manual time `{started_at_utc, stopped_at_utc, project_id, task_id, notes}` |
+| `PUT /edit/time-entries[-slot]/…`, `PUT /manual-entry-edit/time-entries[-slot]/…` | edit (tracked / manual) |
+| `PUT /split/time-entries[-slot]/…` | split into sequential parts |
+| `DELETE /delete/time-entries-block/…`, `/delete/time-entries/…`, `/manual-delete/time-entries/…` | delete `{local_activity_duration_id, reasons}` |
+| `POST /bulk-delete/time-entries/{org}/{user}` | `{timezone_str, items:[…]}` |
+| `GET /activity-screenshots/{org}?activity_date&timezone&view_mode&user_id` | rebuilt from entries, full live shape (also feeds Dashboard › Recent Screenshots) |
+| `DELETE /delete/screenshot-slot/{org}/{user}` | `{local_activity_duration_id:["slot-<ms>"], delete_reason}` → removes the slot's time + soft-deletes its screenshots |
+| `GET /audit/deleted-screenshots/{org}?page&page_size&timezone&…` | deleted list (37 seeded records) |
+| `POST /deleted-activity-screenshots/{org}/{id}/restore`, `DELETE /deleted-activity-screenshots/{org}/{id}`, `POST …/bulk-restore`, `POST …/bulk-permanent-delete` | restore puts the slot's time back |
+| `POST /bulk-activity-screenshots/{org}/bulk-download/async`, `GET …/bulk-download/status/{task}` | stub: no ZIP is produced (`download_url: null`) |
+| `POST /track-screenshot-detail-view/{org}` | view audit stub (in memory) |
+| `GET /application-usage-project/{org}?date&timezone&user_id` | App page |
+| `GET /activity/urls/{org}/me`, `/grid`, `/admin`, `/drilldown`, `/view_by_date` | URLs pages |
+
+Types: `src/lib/types/{timesheets,screenshots,activity}.ts`.
+
+## Tests
+
+`npm test` — `tests/api-contract.test.ts` (dashboard + screenshots shape), `tests/timesheets.test.ts` (shapes + add / edit /
+split / delete / bulk-delete round trips incl. Dashboard totals), `tests/activity.test.ts` (screenshots delete → deleted →
+restore, app usage, URLs, timezone list, saved filters).
+`npm run test:e2e` — `e2e/{dashboard,shell,timesheets,screenshots,apps-urls}.spec.ts`.
+`npm run screens` — `e2e/screens*.spec.ts`; batch 1 captures go to `docs/replica-screens/batch1/` (1920×945 at 0.8167 → 1568×772, comparable with the live captures).
+
+## Batch 1 fidelity notes / gaps
+
+- **Exports**: "Export as Excel" downloads a locally generated **CSV**; Timesheets "Export as PDF" returns a simple
+  generated PDF; URL "Export as PDF" / "Send Report" only show a toast (the live code does nothing here either).
+- **Deleted Screenshots**: the live table has no row actions; the Restore / Delete permanently row menu, checkboxes and bulk
+  bar are a **replica extension** wired to the live registry endpoints. Restore works per deletion group (the whole slot).
+  Deleting time on the Timesheets page does not create Deleted-Screenshot records.
+- **Bulk download** shows the live dialog / flow, but no ZIP is produced.
+- **Time off** is shown as a "Paid Time Off" full day (no populated live `time_off` sample was captured).
+- **My URLs populated state** was built from the chunk markup (the live capture only had the empty state);
+  `date_formatted` text format is a guess. Alert cells on the All URLs grid are tinted red (live does not tint them);
+  only `youtube.com` counts as an alert domain (`seed-activity.ts`).
+- **Appearance** background scenes: only the rocket / satellite SVGs were captured; the other scene images are simple
+  placeholders. Light mode depends on the compiled live CSS.
+- `captured_at_user_tz` carries a zone suffix ("… 09:09:22 AM EDT"); the live sample showed no suffix.
+- Page bodies render client-side only (after mount) so "today" is always the browser's day; a minor React text-hydration
+  warning (#418) may still appear in the console on some pages (React recovers; no visual effect).
+- Toast styling (react-hot-toast, top-center) is a best guess.

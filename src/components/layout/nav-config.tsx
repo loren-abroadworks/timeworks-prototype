@@ -7,7 +7,7 @@ import {
   Clock,
   LayoutDashboard,
   Settings,
-  ShieldCheck,
+  ShieldPlus,
   Sparkles,
   TrendingUp,
   Users,
@@ -40,7 +40,7 @@ export const NAV_ICONS: Record<string, React.ReactNode> = {
   insights: <Sparkles size={18} />,
   financials: <BadgeDollarSign size={18} />,
   settings: <Settings size={18} />,
-  hippa_compilance: <ShieldCheck size={18} />,
+  hippa_compilance: <ShieldPlus size={18} />,
 };
 
 /** Hidden in the live sidebar. */
@@ -106,6 +106,9 @@ function hrefFor(slug: string, userId: string, org: number | string, parent?: st
     payment_history: `/organizations/${a}/financials/payment_history`,
     billing: `/organizations/${a}/settings/organization/billing`,
     schedules: `/organizations/${a}/calendar/schedules`,
+    timeoff_request: `/organizations/${a}/timeoff/requests`,
+    activity_and_tracking: `/organizations/${a}/settings/employee/tracking_rules`,
+    policies: `/organizations/${a}/settings/employee/timeoff_policies`,
   };
   return (parent === "absence_leave" ? leave[slug] : undefined) ?? map[slug] ?? "";
 }

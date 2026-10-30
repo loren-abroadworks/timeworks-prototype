@@ -12,7 +12,8 @@ export function ComingSoon({ path }: { path: string }) {
         </div>
         <h2 className="text-lg font-semibold text-foreground">Coming soon in replica</h2>
         <p className="text-sm text-muted-foreground max-w-md">
-          This replica only reproduces the Dashboard. The live app would show <code className="text-foreground">{path}</code> here.
+          This page is not part of the replica yet (built so far: Dashboard, Timesheets › View &amp; Edit and the Activity pages). The live app would show{" "}
+          <code className="text-foreground">{path}</code> here.
         </p>
         <Link href={`/dashboard/${DEMO_USER_ID}/my_dashboard`} className="text-sm font-medium text-primary hover:underline">
           Back to Dashboard

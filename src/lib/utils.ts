@@ -15,3 +15,12 @@ export function initial(name?: string | null) {
 export function avatarBorder(index: number) {
   return index % 2 === 0 ? "border-amber-600" : "border-dashboard-border";
 }
+
+/** "Karl Test Account" -> "KT" (first letters of the first two words), "Akshoy" -> "A". */
+export function initials(name?: string | null) {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  return parts
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("");
+}

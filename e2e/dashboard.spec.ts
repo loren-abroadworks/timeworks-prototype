@@ -235,8 +235,8 @@ test.describe("Manager View", () => {
 
 test("sidebar links lead to the 'coming soon' page inside the shell", async ({ page }) => {
   await open(page, MY);
-  await page.getByTitle("Timesheets").click();
-  await page.getByRole("link", { name: "View & Edit" }).click();
-  await expect(page).toHaveURL(/\/organizations\/3\/timesheets\/view_edit$/);
+  await page.getByTitle("People").click();
+  await page.getByRole("link", { name: "Members" }).click();
+  await expect(page).toHaveURL(/\/organizations\/3\/members$/);
   await expect(page.getByTestId("coming-soon")).toBeVisible();
 });

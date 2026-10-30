@@ -3,14 +3,28 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "./AppSidebar";
-import { MobileSidebarTrigger, PageHeader } from "./PageHeader";
+import { MobileSidebarTrigger, PageHeader, type Crumb } from "./PageHeader";
 
 /**
  * Application frame: background scene layers, sidebar, sticky "glass" header that fades in
  * after scrolling 30px, and the scrollable <main>. Markup mirrors the live app 1:1.
  */
-export function AppShell({ title = "Dashboard", children }: { title?: string; children: React.ReactNode }) {
+export function AppShell({
+  title = "Dashboard",
+  crumbs,
+  headerSlot,
+  children,
+}: {
+  title?: string;
+  crumbs?: Crumb[];
+  /** Extra content rendered right after the breadcrumb (e.g. the My URLs / All URLs tabs). */
+  headerSlot?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   const mainRef = React.useRef<HTMLElement>(null);
+  // Page bodies render client-side only: they default to "today" in the browser time zone, which can differ from the server.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
   const pathname = usePathname();
@@ -85,15 +99,15 @@ export function AppShell({ title = "Dashboard", children }: { title?: string; ch
               }`}
               style={{ willChange: "transform, opacity" }}
             >
-              <PageHeader title={title} className="glass-header py-4 px-8 border-b border-layout-subtle shadow-sm" />
+              <PageHeader title={title} crumbs={crumbs} headerSlot={mounted ? headerSlot : null} className="glass-header py-4 px-8 border-b border-layout-subtle shadow-sm" />
             </div>
             <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden w-full px-4" style={{ position: "relative" }} data-testid="main-scroll">
               <div className="py-2 font-karla">
                 <header className="flex items-center shrink-0">
                   <MobileSidebarTrigger />
-                  <PageHeader title={title} className="py-2" />
+                  <PageHeader title={title} crumbs={crumbs} headerSlot={mounted ? headerSlot : null} className="py-2" />
                 </header>
-                {children}
+                {mounted ? children : null}
               </div>
             </main>
           </div>

@@ -53,3 +53,35 @@ export function listOf(req: NextRequest) {
     filterUserId: sp.get("filter_user_id") || undefined,
   };
 }
+
+/** Throw inside a handler to return an error JSON (`{ status: "error", message }`) with an HTTP status. */
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/**
+ * Wraps a write handler (POST / PUT / PATCH / DELETE): waits the configured latency, parses the JSON body
+ * (empty body → {}), runs `build`, returns its result as JSON. Throw ApiError for 4xx responses.
+ */
+export async function respondWrite<T>(req: NextRequest, build: (ctx: Ctx, body: Record<string, unknown>) => T | Promise<T>) {
+  const latency = getLatency(req);
+  if (latency > 0) await new Promise((r) => setTimeout(r, latency));
+  let body: Record<string, unknown> = {};
+  try {
+    const text = await req.text();
+    body = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+  } catch {
+    return NextResponse.json({ status: "error", message: "Invalid JSON body" }, { status: 400 });
+  }
+  try {
+    return NextResponse.json(await build(getCtx(req), body));
+  } catch (err) {
+    if (err instanceof ApiError) return NextResponse.json({ status: "error", message: err.message, detail: err.message }, { status: err.status });
+    return NextResponse.json({ status: "error", message: String(err) }, { status: 500 });
+  }
+}

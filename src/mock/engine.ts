@@ -21,13 +21,12 @@ import type {
   ProjectClientRow,
   ProjectOption,
   ProjectReportItem,
-  ScreenshotsResponse,
   SidebarItem,
   TopEmployee,
   UserDetails,
 } from "@/lib/api-types";
 import { secondsToHM, secondsToHMS } from "@/lib/format";
-import { DEMO_USER_ID, MEMBERS, MOCK_SETTINGS, ORGANIZATION, PROJECTS, SCREENSHOT_IMAGES, type SeedMember } from "./seed";
+import { DEMO_USER_ID, MEMBERS, MOCK_SETTINGS, ORGANIZATION, PROJECTS, type SeedMember } from "./seed";
 import { getStore, hashString, rng, type DayRecord } from "./store";
 
 export type Scenario = "default" | "empty";
@@ -199,25 +198,27 @@ export function sidebarPermissions(): SidebarItem[] {
     children,
     pages: [page(slug, name)],
   });
+  // Names / order / nesting exactly as the live sidebar DOM (hidden slugs such as timesheet_approvals
+  // and insights are returned by the live API too and filtered out by the frontend).
   return [
     item("dashboard", "Dashboard"),
-    item("time_sheets", "Timesheets", [item("timesheet_view_edit", "View & Edit"), item("timesheet_approvals", "Approvals")]),
-    item("activity", "Activity", [item("screenshots", "Screenshots"), item("app", "Apps"), item("urls", "URLs"), item("deleted_screenshots", "Deleted Screenshots")]),
-    item("calendar", "Calendar", [item("schedules", "Schedules")]),
+    item("time_sheets", "Timesheets", [item("timesheet_view_edit", "View & Edit Timesheets"), item("timesheet_approvals", "Approvals")]),
+    item("activity", "Activity", [item("screenshots", "Screenshots"), item("app", "App"), item("urls", "URLs"), item("deleted_screenshots", "Deleted Screenshots")]),
+    item("calendar", "Calendar", [item("timeoff_request", "Timeoff Requests"), item("schedules", "Schedules")]),
     item("absence_leave", "Absence & Leave", [
-      item("leave_calendar", "Leave Calendar"),
-      item("leave_requests", "Leave Requests"),
+      item("leave_calendar", "Calendar"),
+      item("leave_requests", "Requests"),
       item("timeoff_balances", "Balances"),
       item("timeof_policies", "Policies"),
     ]),
-    item("project_managements", "Project Management", [item("projects", "Projects"), item("to_dos", "To-dos"), item("client", "Clients")]),
-    item("people", "People", [item("members", "Members"), item("teams", "Teams")]),
+    item("project_managements", "Project Management", [item("projects", "Projects"), item("to_dos", "To Dos")]),
+    item("people", "People", [item("members", "Members"), item("client", "Client"), item("teams", "Teams")]),
     item("reports", "Reports", [
-      item("time_activity", "Time & Activity"),
-      item("daily_totals_weekly", "Daily Totals (Weekly)"),
+      item("time_activity", "Time & activity"),
+      item("daily_totals_weekly", "Daily Total (weekly)"),
       item("time_edit", "Time Edits"),
       item("work_sessions", "Work Sessions"),
-      item("app_and_urls", "Apps & URLs"),
+      item("app_and_urls", "Apps & Urls"),
       item("shift_attendance", "Shift Attendance"),
       item("daily_limits", "Daily Limits"),
       item("weekly_limits", "Weekly Limits"),
@@ -228,19 +229,16 @@ export function sidebarPermissions(): SidebarItem[] {
       item("payment_list", "Payments"),
       item("past_payments", "Past Payments"),
       item("client_billing", "Client Billing"),
-      item("payment_history", "Payment History"),
     ]),
     item("settings", "Settings", [
       item("organization", "Organization", [
         item("roles", "Roles"),
         item("team-permission-settings", "Team Permissions"),
-        item("audit_log", "Audit Log"),
+        item("audit_log", "Audit Logs"),
         item("security_login", "Security & Login"),
         item("fraud_detection", "Fraud Detection"),
-        item("billing", "Billing"),
       ]),
-      item("employees", "Employees", [item("time_work_limit", "Time & Work Limits"), item("tracking_rules", "Tracking Rules"), item("hippa_compilance", "HIPAA Compliance")]),
-      item("teams_clients", "Teams & Clients"),
+      item("employees", "Employees", [item("time_work_limit", "Time & Work Limits"), item("tracking_rules", "Tracking Rules"), item("hippa_compilance", "HIPPA compliance")]),
     ]),
   ];
 }
@@ -250,8 +248,9 @@ export function userPermissions(): PermissionEntry[] {
   return slugs.map((slug) => ({ slug, permissions: { [slug]: true, "team-dashboard": true } }));
 }
 
-export function allProjects(): ProjectOption[] {
-  return PROJECTS.map((p) => ({ id: p.id, name: p.name }));
+export function allProjects(userId?: string | null): ProjectOption[] {
+  const member = userId ? memberById(userId) : undefined;
+  return PROJECTS.filter((p) => !member || member.projects.includes(p.id)).map((p) => ({ id: p.id, name: p.name }));
 }
 
 export function allMembers(): MemberOption[] {
@@ -578,95 +577,4 @@ export function limitsAll(ctx: Ctx, kind: "weekly" | "daily", q: Omit<ListQ, "st
   return paginate(rows, q.limit, q.offset);
 }
 
-/* ------------------------------------------------------------------ */
-/* Recent Screenshots                                                  */
-/* ------------------------------------------------------------------ */
-
-/** Which two hours get screenshots: the two full hours before "now" for today, 14:00-16:00 for past days. */
-function screenshotHours(date: string) {
-  if (date === dayjs().format("YYYY-MM-DD")) {
-    const h = dayjs().hour();
-    return h >= 2 ? [h - 2, h - 1] : [0, 1];
-  }
-  return [14, 15];
-}
-
-function twelveHour(h: number, m: number, s: number) {
-  const suffix = h >= 12 ? "PM" : "AM";
-  const hh = h % 12 === 0 ? 12 : h % 12;
-  return `${String(hh).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")} ${suffix}`;
-}
-
-export function activityScreenshots(ctx: Ctx, q: { date: string; viewMode: string; userId?: string }): ScreenshotsResponse {
-  const userId = q.userId || DEMO_USER_ID;
-  const member = memberById(userId) ?? memberById(DEMO_USER_ID)!;
-  const base = {
-    status: "success",
-    is_work_screenshot_block_delete: false,
-    date: q.date,
-    has_time_off: false,
-    time_off: [] as unknown[],
-  };
-  const empty = ctx.scenario === "empty" || !getStore().records.get(member.user_id)?.get(q.date);
-  if (empty) {
-    return q.viewMode === "all_records"
-      ? { ...base, total_hourly_slots: 0, total_work: "0:00:00", avg_activity_percentage: 0, hourly_buckets: [] }
-      : { ...base, total_hourly_slots: 0, total_work: "0:00:00", avg_activity_percentage: 0, hourly_slots: [] };
-  }
-
-  const projects = PROJECTS.filter((p) => member.projects.includes(p.id));
-  const hours = screenshotHours(q.date);
-  let totalSeconds = 0;
-  let activitySum = 0;
-  let activityCount = 0;
-
-  const slots = hours.map((h) => {
-    const r = rng(`shots:${member.user_id}:${q.date}:${h}`);
-    const emptyIndex = r() < 0.7 ? Math.floor(r() * 6) : -1; // usually one "No Activity" slot per hour
-    const project = projects[Math.floor(r() * projects.length)]?.name ?? null;
-    const ten = [0, 10, 20, 30, 40, 50].map((m, i) => {
-      const time_slot = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-      if (i === emptyIndex) return { time_slot, activity_percentage: 0, screenshots: [], captured: [] as { id: number; url: string; project: string | null; captured_at_user_tz: string }[] };
-      const activity = Math.round(Math.min(98, Math.max(12, member.activity + (r() - 0.5) * 60)));
-      const shotProject = r() < 0.8 ? project : projects[Math.floor(r() * projects.length)]?.name ?? project;
-      const count = 1 + (r() < 0.45 ? 1 : 0);
-      const captured = Array.from({ length: count }, (_, k) => {
-        const minute = m + Math.floor(r() * 10);
-        const second = Math.floor(r() * 60);
-        const id = hashString(`${member.user_id}${q.date}${time_slot}${k}`) % 9_000_000 + 1_000_000;
-        return {
-          id,
-          url: SCREENSHOT_IMAGES[Math.floor(r() * SCREENSHOT_IMAGES.length)],
-          project: shotProject,
-          captured_at_user_tz: `${q.date} ${twelveHour(h, minute, second)}`,
-        };
-      }).sort((a, b) => a.captured_at_user_tz.localeCompare(b.captured_at_user_tz));
-      totalSeconds += 600;
-      activitySum += activity;
-      activityCount += 1;
-      return { time_slot, activity_percentage: activity, screenshots: captured.slice(0, 1).map(({ captured_at_user_tz: _c, ...s }) => s), captured };
-    });
-    return { hour_slot: `${String(h).padStart(2, "0")}:00`, ten };
-  });
-
-  const summary = {
-    ...base,
-    total_hourly_slots: slots.length,
-    total_work: secondsToHMS(totalSeconds).replace(/^0(\d)/, "$1"),
-    avg_activity_percentage: activityCount ? round2(activitySum / activityCount) : 0,
-  };
-
-  if (q.viewMode === "all_records") {
-    return {
-      ...summary,
-      hourly_buckets: slots.map((s) => ({ hour_slot: s.hour_slot, screenshots: s.ten.flatMap((t) => t.captured) })),
-    };
-  }
-  return {
-    ...summary,
-    hourly_slots: slots.map((s) => ({
-      hour_slot: s.hour_slot,
-      ten_minute_slots: s.ten.map(({ captured: _c, ...t }) => t),
-    })),
-  };
-}
+// Recent Screenshots / Activity › Screenshots: see src/mock/screenshots.ts

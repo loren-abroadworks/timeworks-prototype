@@ -33,7 +33,23 @@ export function useQueryParams() {
     [pathname, router],
   );
 
-  return { get, push, remove };
+  /** Set and delete several params in one navigation (empty / null values are deleted). */
+  const update = useCallback(
+    (set: Record<string, string | null | undefined>, opts: { replace?: boolean } = {}) => {
+      const next = new URLSearchParams(window.location.search);
+      for (const [k, v] of Object.entries(set)) {
+        if (v === null || v === undefined || v === "") next.delete(k);
+        else next.set(k, v);
+      }
+      const qs = next.toString();
+      const url = qs ? `${pathname}?${qs}` : pathname;
+      if (opts.replace) router.replace(url, { scroll: false });
+      else router.push(url, { scroll: false });
+    },
+    [pathname, router],
+  );
+
+  return { get, push, remove, update, params };
 }
 
 /** The selected dashboard range (defaults to the last 30 days ending today). */

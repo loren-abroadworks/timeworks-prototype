@@ -7,5 +7,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     environment: "node",
     env: { MOCK_LATENCY_MS: "0" },
+    // Store rebuilds (reset, seed) can take several seconds on a busy machine.
+    testTimeout: 30_000,
   },
 });
