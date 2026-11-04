@@ -20,6 +20,7 @@ import { DEMO_USER_ID, MEMBERS, MOCK_SETTINGS, PROJECTS } from "./seed";
 import type { Ctx } from "./engine";
 import { ApiError } from "./http";
 import { fakeUuid, hashString, rng, runtimeId } from "./random";
+import { leaveOn } from "./timeoff";
 import { getStore, memberOf, onStoreBuild, type DeletedScreenshot, type MockStore } from "./store";
 import { projectOf, removeRange, restoreFragments, slotsBetween, slotsOfLocalDay, SLOT_MS, type Slot } from "./timeline";
 import { dayjs, fmtTz, localDate, localDayStartMs, safeTz, utcIso } from "./tz";
@@ -228,7 +229,9 @@ export function activityScreenshots(ctx: Ctx, q: { date?: string | null; timezon
   const date = q.date || localDate(Date.now(), tz);
   const userId = q.userId && memberOf(q.userId) ? q.userId : DEMO_USER_ID;
   const viewMode = q.viewMode === "all_records" ? "all_records" : "every_ten_minutes";
-  const base = { status: "success", is_work_screenshot_block_delete: false, date, has_time_off: false, time_off: [] as unknown[] };
+  // Approved leave (Absence & Leave) on this day drives the "<Policy> · Full Day" banner.
+  const leave = ctx.scenario === "empty" ? [] : leaveOn(userId, date);
+  const base = { status: "success", is_work_screenshot_block_delete: false, date, has_time_off: leave.length > 0, time_off: leave as unknown[] };
   if (ctx.scenario === "empty") {
     return { ...base, total_hourly_slots: 0, total_work: "0:00:00", avg_activity_percentage: 0, ...(viewMode === "all_records" ? { hourly_buckets: [] } : { hourly_slots: [] }) };
   }

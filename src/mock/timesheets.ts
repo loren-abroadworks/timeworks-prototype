@@ -26,6 +26,7 @@ import {
   updateEntry,
 } from "./timeline";
 import { dayjs, fmtTz, safeTz } from "./tz";
+import { leaveOn } from "./timeoff";
 import type { TimesheetDay, TimesheetEntry, TimesheetTimeOff, TimesheetUser, UserTimesheetResponse } from "@/lib/types/timesheets";
 
 /* ------------------------------------------------------------------ */
@@ -176,6 +177,20 @@ export function toApiEntry(e: TimeEntry, tz: string): TimesheetEntry {
 
 function ptoFor(ctx: Ctx, userId: string, date: string): TimesheetTimeOff[] {
   if (ctx.scenario === "empty") return [];
+  // Approved leave from Absence & Leave (policy name, paid / unpaid) wins over generated PTO days.
+  const leave = leaveOn(userId, date);
+  if (leave.length)
+    return leave.map((l) => ({
+      request_id: l.request_id,
+      policy_id: l.policy_id,
+      policy_name: l.policy_name,
+      duration_state: l.duration_state,
+      duration_seconds: l.duration_seconds,
+      duration: hmsShort(l.duration_seconds),
+      is_paid: l.is_paid,
+      started_at: l.started_at,
+      stopped_at: l.stopped_at,
+    }));
   const rec = getStore().records.get(userId)?.get(date);
   if (!rec || rec.ptoSeconds <= 0) return [];
   return [
@@ -201,7 +216,9 @@ export function userTimesheet(ctx: Ctx, userId: string, q: TimesheetQuery): User
   let regular = 0;
   let weighted = 0;
   let pto = 0;
+  let ptoUnpaid = 0;
   let ptoDays = 0;
+  const ptoPolicies = new Set<number>();
   const days = new Map<string, TimesheetDay>();
   for (const date of dates) {
     const list = (byDate.get(date) ?? []).filter((e) => passes(e, q)).sort((a, b) => a.start - b.start);
@@ -209,6 +226,9 @@ export function userTimesheet(ctx: Ctx, userId: string, q: TimesheetQuery): User
     const active = list.reduce((s, e) => s + (durationSeconds(e) * e.activity) / 100, 0);
     const timeOff = ptoFor(ctx, userId, date);
     const off = timeOff.reduce((s, t) => s + t.duration_seconds, 0);
+    const offUnpaid = timeOff.filter((t) => !t.is_paid).reduce((s, t) => s + t.duration_seconds, 0);
+    ptoUnpaid += offUnpaid;
+    timeOff.forEach((t) => ptoPolicies.add(t.policy_id));
     regular += secs;
     weighted += active;
     pto += off;
@@ -222,10 +242,10 @@ export function userTimesheet(ctx: Ctx, userId: string, q: TimesheetQuery): User
       time_off: timeOff,
       day_time_off_seconds: off,
       day_time_off_time: hmsLong(off),
-      day_time_off_paid_seconds: off,
-      day_time_off_paid_time: hmsLong(off),
-      day_time_off_unpaid_seconds: 0,
-      day_time_off_unpaid_time: "00:00:00",
+      day_time_off_paid_seconds: off - offUnpaid,
+      day_time_off_paid_time: hmsLong(off - offUnpaid),
+      day_time_off_unpaid_seconds: offUnpaid,
+      day_time_off_unpaid_time: hmsLong(offUnpaid),
       regular_day_total_second: secs,
       regular_day_total_time: hmsLong(secs),
       day_total_duration_second: secs + off,
@@ -251,12 +271,12 @@ export function userTimesheet(ctx: Ctx, userId: string, q: TimesheetQuery): User
     time_off_summary: {
       total_seconds: pto,
       total_hours: hmsLong(pto),
-      paid_seconds: pto,
-      paid_hours: hmsLong(pto),
-      unpaid_seconds: 0,
-      unpaid_hours: "00:00:00",
+      paid_seconds: pto - ptoUnpaid,
+      paid_hours: hmsLong(pto - ptoUnpaid),
+      unpaid_seconds: ptoUnpaid,
+      unpaid_hours: hmsLong(ptoUnpaid),
       days_count: ptoDays,
-      policies_count: pto > 0 ? 1 : 0,
+      policies_count: ptoPolicies.size,
     },
     limit: q.limit,
     offset: q.offset,

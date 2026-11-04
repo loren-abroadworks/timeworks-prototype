@@ -85,3 +85,40 @@ export async function respondWrite<T>(req: NextRequest, build: (ctx: Ctx, body: 
     return NextResponse.json({ status: "error", message: String(err) }, { status: 500 });
   }
 }
+
+export interface UploadedFile {
+  name: string;
+  size: number;
+  type: string;
+}
+
+/**
+ * Like respondWrite, for the time-off request endpoints that post FormData (`data` = JSON string, `files` = uploads).
+ * A plain JSON body (`{ ...fields }` or `{ data: {...} }`) is accepted too, which keeps API tests simple.
+ */
+export async function respondForm<T>(req: NextRequest, build: (ctx: Ctx, data: Record<string, unknown>, files: UploadedFile[]) => T | Promise<T>) {
+  const latency = getLatency(req);
+  if (latency > 0) await new Promise((r) => setTimeout(r, latency));
+  let data: Record<string, unknown> = {};
+  const files: UploadedFile[] = [];
+  try {
+    if ((req.headers.get("content-type") ?? "").includes("multipart/form-data")) {
+      const form = await req.formData();
+      const raw = form.get("data");
+      data = typeof raw === "string" && raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+      for (const f of form.getAll("files")) if (typeof f !== "string") files.push({ name: f.name, size: f.size, type: f.type });
+    } else {
+      const text = await req.text();
+      const body = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+      data = typeof body.data === "string" ? (JSON.parse(body.data) as Record<string, unknown>) : body.data && typeof body.data === "object" ? (body.data as Record<string, unknown>) : body;
+    }
+  } catch {
+    return NextResponse.json({ status: "error", message: "Invalid request body" }, { status: 400 });
+  }
+  try {
+    return NextResponse.json(await build(getCtx(req), data, files));
+  } catch (err) {
+    if (err instanceof ApiError) return NextResponse.json({ status: "error", message: err.message, detail: err.message }, { status: err.status });
+    return NextResponse.json({ status: "error", message: String(err) }, { status: 500 });
+  }
+}

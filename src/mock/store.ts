@@ -12,6 +12,8 @@ import dayjs from "dayjs";
 import { APPS, MEMBERS, MOCK_SETTINGS, PROJECTS, type SeedMember } from "./seed";
 import { clamp, fakeUuid, hashString, rng } from "./random";
 import { dayjs as dayjsTz, localDate, localDayStartMs, localToUtcMs } from "./tz";
+import { buildTimeOff, type TimeOffState } from "./timeoff";
+import { buildSchedules, type SchedulesState } from "./schedules";
 
 export { hashString, rng } from "./random";
 
@@ -103,6 +105,10 @@ export interface MockStore {
   removedFragments: Map<string, TimeEntry[]>;
   deletedScreenshots: DeletedScreenshot[];
   savedFilters: SavedFilter[];
+  /** Time off policies / requests / adjustments (src/mock/timeoff.ts). */
+  timeOff?: TimeOffState;
+  /** Shift rules for Calendar › Schedules (src/mock/schedules.ts). */
+  schedules?: SchedulesState;
 }
 
 /* ---------- generation ---------- */
@@ -314,6 +320,9 @@ function buildStore(): MockStore {
     // Re-derive the aggregates so Dashboard and Timesheets agree to the second.
     for (const [date, dayEntries] of perDay) if (byDate.get(date)!.regularSeconds > 0) syncDay(store, member.user_id, date, dayEntries);
   }
+  // Time off before the other hooks: approved full-day leave clears the member's tracked time that day.
+  store.timeOff = buildTimeOff(store);
+  store.schedules = buildSchedules(store);
   for (const hook of buildHooks) hook(store);
   return store;
 }
